@@ -8,26 +8,19 @@ app.use(express.json());
 app.use(express.static('public'));
 
 
-/* =========================
-   GET TODOS
-========================= */
 app.get('/usuarios', async (req, res) => {
     const result = await pool.query('SELECT * FROM usuarios ORDER BY id');
     res.json(result.rows);
 });
 
-/* =========================
-   GET POR ID
-========================= */
+
 app.get('/usuarios/:id', async (req, res) => {
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM usuarios WHERE id=$1', [id]);
     res.json(result.rows[0]);
 });
 
-/* =========================
-   CREAR
-========================= */
+
 app.post('/usuarios', async (req, res) => {
     const { nombre, email, edad, pais } = req.body;
 
