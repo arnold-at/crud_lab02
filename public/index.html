@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>CRUD Usuarios</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.card {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #38bdf8;
+}
+
+/* FORM */
+.form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.form input {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+.form button {
+    grid-column: span 2;
+    padding: 12px;
+    border: none;
+    background: #0ea5e9;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.form button:hover {
+    background: #0284c7;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background: #0ea5e9;
+}
+
+tr {
+    background: #334155;
+}
+
+tr:nth-child(even) {
+    background: #1e293b;
+}
+
+/* BUTTONS */
+.btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.edit {
+    background: orange;
+}
+
+.delete {
+    background: red;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h2>CRUD Usuarios</h2>
+
+        <!-- FORM -->
+        <div class="form">
+            <input id="nombre" placeholder="Nombre">
+            <input id="email" placeholder="Email">
+            <input id="edad" placeholder="Edad">
+            <input id="pais" placeholder="País">
+
+            <button onclick="guardar()">Guardar</button>
+        </div>
+
+        <!-- TABLE -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Edad</th>
+                    <th>País</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla"></tbody>
+        </table>
+
+    </div>
+</div>
+
+<script>
+const API = "http://localhost:3000/usuarios";
+
+let editandoId = null;
+
+// CARGAR DATOS
+async function cargar() {
+    const res = await fetch(API);
+    const data = await res.json();
+
+    document.getElementById('tabla').innerHTML = data.map(u => `
+        <tr>
+            <td>${u.id}</td>
+            <td>${u.nombre}</td>
+            <td>${u.email}</td>
+            <td>${u.edad}</td>
+            <td>${u.pais}</td>
+            <td>
+                <button class="btn edit" onclick="editar(${u.id}, '${u.nombre}', '${u.email}', ${u.edad}, '${u.pais}')">Editar</button>
+                <button class="btn delete" onclick="eliminar(${u.id})">Eliminar</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// GUARDAR (CREAR O EDITAR)
+async function guardar() {
+    const nombre = document.getElementById('nombre').value;
+    const email = document.getElementById('email').value;
+    const edad = document.getElementById('edad').value;
+    const pais = document.getElementById('pais').value;
+
+    if (editandoId) {
+        await fetch(API + "/" + editandoId, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, email, edad, pais })
+        });
+        editandoId = null;
+    } else {
+        await fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, email, edad, pais })
+        });
+    }
+
+    limpiar();
+    cargar();
+}
+
+// EDITAR
+function editar(id, nombre, email, edad, pais) {
+    document.getElementById('nombre').value = nombre;
+    document.getElementById('email').value = email;
+    document.getElementById('edad').value = edad;
+    document.getElementById('pais').value = pais;
+
+    editandoId = id;
+}
+
+// ELIMINAR
+async function eliminar(id) {
+    await fetch(API + "/" + id, { method: "DELETE" });
+    cargar();
+}
+
+// LIMPIAR
+function limpiar() {
+    document.getElementById('nombre').value = "";
+    document.getElementById('email').value = "";
+    document.getElementById('edad').value = "";
+    document.getElementById('pais').value = "";
+}
+
+// INICIO
+cargar();
+</script>
+
+</body>
+</html>
